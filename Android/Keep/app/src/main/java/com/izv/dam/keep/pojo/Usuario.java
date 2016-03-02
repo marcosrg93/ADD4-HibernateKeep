@@ -65,4 +65,12 @@ public class Usuario implements Parcelable {
         dest.writeString(email);
         dest.writeString(pass);
     }
+
+    @Override
+    public String toString() {
+        return "Usuario{" +
+                "email='" + email + '\'' +
+                ", pass='" + pass + '\'' +
+                '}';
+    }
 }

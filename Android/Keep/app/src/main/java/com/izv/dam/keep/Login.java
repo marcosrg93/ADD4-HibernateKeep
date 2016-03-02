@@ -20,6 +20,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.provider.ContactsContract;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.View;
 import android.view.View.OnClickListener;
@@ -31,8 +32,7 @@ import android.widget.EditText;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import com.izv.dam.keep.gestion.GestionUsuario;
-import com.izv.dam.keep.pojo.Usuario;
+import com.izv.dam.keep.Actividades.Principal;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -46,10 +46,9 @@ import static android.Manifest.permission.READ_CONTACTS;
 
 public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> {
 
-    private String destino = "http://192.168.208.208:8080/Keep/go?tabla=usuario&op=login&login=pepe&pass=pepe&origen=android&accion=";
-
+    private String destino = "http://192.168.1.3:8080/Keep/go?tabla=usuario&op=login&login=marcos@gmail.com&pass=12345&origen=android&accion=";
+    private String url2= "http://192.168.1.3:8080/Keep/go?tabla=usuario&op=login&login=marcos@gmail.com&pass=12345&origen=android&accion=";
     private static final int REQUEST_READ_CONTACTS = 0;
-    private  GestionUsuario gu = new GestionUsuario();
 
     private static final String[] DUMMY_CREDENTIALS = new String[]{
             "foo@example.com:hello", "bar@example.com:world"
@@ -61,11 +60,13 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
     private EditText mPasswordView;
     private View mProgressView;
     private View mLoginFormView;
+    private String url= "http://192.168.1.3:8080/Keep/go?tabla=usuario&op=login&origen=android&accion=";
+    //private String url= "http://192.168.1.107:8080/Keep/go?tabla=usuario&op=login&origen=android&accion=";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_login2);
+        setContentView(R.layout.activity_sign_in_screen);
         mEmailView = (AutoCompleteTextView) findViewById(R.id.email);
         populateAutoComplete();
         mPasswordView = (EditText) findViewById(R.id.password);
@@ -173,11 +174,11 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
     }
 
     private boolean isEmailValid(String email) {
-        return true;//email.contains("@");
+        return email.contains("@");
     }
 
     private boolean isPasswordValid(String password) {
-        return password.length() > 1;
+        return password.length() > 4;
     }
 
     @TargetApi(Build.VERSION_CODES.HONEYCOMB_MR2)
@@ -248,30 +249,74 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
         int IS_PRIMARY = 1;
     }
 
-    public class UserLoginTask extends AsyncTask<Void, Void, Boolean> {
+    public class UserLoginTask extends AsyncTask<Void, Void, String> {
 
-        private final Usuario user;
-
+        private final String mEmail;
+        private final String mPassword;
+        private  String cadena;
         UserLoginTask(String email, String password) {
-            user = new Usuario(email,password);
+            mEmail = email;
+            mPassword = password;
+
+                cadena = url+"&login="+mEmailView.getText()+"&pass="+ mPasswordView.getText();
+            Log.v("URLL",cadena);
         }
 
         @Override
-        protected Boolean doInBackground(Void... params) {
-            return gu.isValidUser(user);
+        protected String doInBackground(Void... params) {
+            /*try {
+                Thread.sleep(2000);
+            } catch (InterruptedException e) {
+                return false;
+            }
+            for (String credential : DUMMY_CREDENTIALS) {
+                String[] pieces = credential.split(":");
+                if (pieces[0].equals(mEmail)) {
+                    return pieces[1].equals(mPassword);
+                }
+            }
+            return true;*/
+
+            URL url = null;
+            String res = "";
+            try {
+                url = new URL(cadena);
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            }
+            BufferedReader in = null;
+            try {
+                in = new BufferedReader(new InputStreamReader(url.openStream()));
+                String linea;
+                while ((linea = in.readLine()) != null) {
+                    res += linea;
+                }
+                in.close();
+            } catch (IOException e) {
+            }
+            return res;
+
+
         }
 
         @Override
-        protected void onPostExecute(final Boolean success) {
+        protected void onPostExecute(final String success) {
             mAuthTask = null;
             showProgress(false);
-            if (success) {
-                abrirActividad(user);
+            if (success.contains("true")) {
+                finish();
+                Intent i = new Intent(Login.this,Principal.class);
+                Bundle b = new Bundle();
+                b.putString("user", mEmailView.getText().toString());
+                b.putString("pass", mPasswordView.getText().toString());
+                i.putExtras(b);
+                startActivity(i);
             } else {
                 mPasswordView.setError(getString(R.string.error_incorrect_password));
                 mPasswordView.requestFocus();
             }
-            Toast.makeText(Login.this, success+"", Toast.LENGTH_LONG).show();
+            Toast.makeText(Login.this, success, Toast.LENGTH_LONG).show();
+
         }
 
         @Override
@@ -279,15 +324,5 @@ public class Login extends AppCompatActivity implements LoaderCallbacks<Cursor> 
             mAuthTask = null;
             showProgress(false);
         }
-    }
-
-    public void abrirActividad2 (View v){
-        abrirActividad(null);
-    }
-
-    private void abrirActividad(Usuario u){
-        Intent i = new Intent(this, Principal.class);
-        i.putExtra("usuario",u);
-        startActivity(i);
     }
 }

@@ -1,7 +1,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools" tools:context=".Principal">
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:context="com.rubino.pmdm5_paint.Principal">
+    <item
+        android:id="@+id/action_sinc"
+        android:title="@string/action_sinc"
 
-    <item android:id="@+id/action_add" android:title="@string/agregar"
-        android:orderInCategory="100" app:showAsAction="never" />
+        app:showAsAction="always" />
+    <item
+        android:id="@+id/action_subir"
+        android:title="@string/action_sub"
+
+        app:showAsAction="always" />
+
+
 </menu>
